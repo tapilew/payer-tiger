@@ -12,8 +12,8 @@ Patreon or X's own subscriptions.
 
 ## TODO
 
-- [ ] Create T3 App
-- [ ] Create Foundry project
+- [x] Create T3 App
+- [x] Create Foundry project
 - [ ] Setup Turborepo
 - [ ] Update README guide to run locally
 
