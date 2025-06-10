@@ -1,4 +1,4 @@
-**Payer Tiger** (💲,🐅)
+# **Payer Tiger** (💲,🐅)
 
 Payer Tiger is a **monetization toolkit** for [X](https://x.com) (f.k.a.
 Twitter) and [Arena](https://arena.social) creators that lets them earn directly
@@ -9,6 +9,13 @@ It uses a
 to transform any tweet into an interactive, on-platform paywall or tip jar,
 making it fundamentally superior to the high-friction, high-fee models of
 Patreon or X's own subscriptions.
+
+## TODO
+
+- [ ] Create T3 App
+- [ ] Create Foundry project
+- [ ] Setup Turborepo
+- [ ] Update README guide to run locally
 
 ## The Problem: Creator Monetization is Broken
 
