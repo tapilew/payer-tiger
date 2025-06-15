@@ -1,121 +1,145 @@
-# **Payer Tiger** (💲,🐅)
+# Payer Tiger (💲,🐅)
 
-Payer Tiger is a **monetization toolkit** for [X](https://x.com) (f.k.a.
-Twitter) and [Arena](https://arena.social) creators that lets them earn directly
-from their content with a single click.
-
-It uses a
-[Sherry `Dynamic Action`](https://docs.sherry.social/docs/api-reference/action-types/dynamic-actions)
-to transform any tweet into an interactive, on-platform paywall or tip jar,
-making it fundamentally superior to the high-friction, high-fee models of
-Patreon or X's own subscriptions.
+Payer Tiger is a monetization toolkit for creators on platforms like X (f.k.a.
+Twitter) and Arena. It leverages the Sherry SDK to enable direct, on-platform,
+and low-friction payments, allowing creators to earn from their content with a
+single click.
 
 ## TODO
 
 - [x] Create T3 App
 - [x] Create Foundry project
-- [ ] Setup Turborepo
-- [ ] Update README guide to run locally
-- [ ] Deploy HTTPayer servers to cloud (payer server, treasury server, avax facilitator server, demo server)
+- [x] Setup Turborepo
+- [ ] Deploy HTTPayer servers to cloud
+  - [ ] payer server
+  - [ ] treasury server
+  - [ ] avax facilitator server
+  - [ ] demo server
 
 ## The Problem: Creator Monetization is Broken
 
-Creators build massive, engaged audiences on X but struggle to monetize them
-directly. Existing solutions are deeply flawed:
+Creators build valuable communities but face significant friction when trying to
+monetize their work. The current landscape is inefficient and costly:
 
-- **High Friction:** Off-platform links to Patreon or Gumroad kill conversion
-  rates by forcing users to leave the app, create new accounts, and navigate
-  complex checkout flows.
-- **Inflexible Models:** X Subscriptions are "all or nothing." Creators cannot
-  sell access to a single article, video, or receive a one-off tip for a viral
-  post.
-- **Exorbitant Fees:** Platforms can take up to 30% of a creator's hard-earned
-  income, and traditional payment processors add their own fees on top.
-- **Global Barriers:** Payouts are tied to traditional banking systems like
-  Stripe, creating barriers for creators in many countries.
+- **High Friction:** Off-platform links to Patreon or Gumroad kill conversion by
+  forcing users through cumbersome, multi-step checkout flows.
+- **Inflexible Models:** Platform subscriptions are often "all-or-nothing,"
+  preventing creators from selling access to individual articles, videos, or
+  receiving one-off tips.
+- **Exorbitant Fees:** Centralized platforms and payment processors can take a
+  substantial cut of a creator's revenue.
+- **Global Barriers:** Payouts are tied to traditional banking systems, creating
+  accessibility issues for creators in many parts of the world.
 
-## The Solution: The Monetization Trigger
+## The Solution: The On-Chain Monetization Trigger
 
-Payer Tiger gives power back to the creator. It's a lean, powerful, and open
-tool that provides a simple "trigger" they can attach to any piece of content.
-This trigger handles all the complexity of crypto payments, making the
-experience seamless for their followers.
+Payer Tiger solves this by providing a simple, powerful, and decentralized
+"trigger" that creators can attach to any piece of content. Our solution is a
+**Sherry Dynamic Action** that facilitates a direct, user-signed payment to the
+creator, using our on-chain `PayerRouter` contract for address resolution and a
+secure, signature-gated delivery mechanism.
 
-### How It Works
+### How It Works: A Two-Part System
 
-1. **Creator Sets a Trigger:** A creator posts a teaser of their content (e.g.,
-   the first paragraph of an article) and attaches a Payer Tiger action: "Unlock
-   Full Article for 1 USDC".
-2. **Follower Clicks:** A follower clicks the button directly within the
-   Sherry-embedded tweet.
-3. **Server-Side Logic:** The Sherry `Dynamic Action` calls our backend API
-   endpoint. Our server checks the creator's preferences (e.g., they want to
-   receive funds on Celo).
-4. **Optimal Transaction:** The server constructs the optimal transaction. If
-   the follower is paying from Avalanche, it builds a transaction that routes
-   their USDC through Wormhole to the creator's Celo wallet. If they're both on
-   the same chain, it's a simple transfer.
-5. **Seamless Execution:** The server returns the serialized transaction to the
-   user's wallet for a single, simple signature. The follower never has to think
-   about bridges or networks.
-6. **Content Unlocked:** Upon confirmation, the content is instantly revealed to
-   the user, all without ever leaving Twitter.
+Payer Tiger operates as a system of two distinct but connected applications: a
+**Creator Setup** process and a **Consumer Mini-App** for payments and access.
 
-## Why Payer Tiger is Superior
+#### 1. Creator Setup (MVP Manual Flow)
 
-| Feature         | **Payer Tiger**                     | **Twitter Subscriptions** | **Patreon**             |
-| :-------------- | :---------------------------------- | :------------------------ | :---------------------- |
-| **Fees**        | Minimal Protocol Fees               | Up to 30%                 | 5-12% + processing      |
-| **Model**       | **Flexible:** Pay-per-view, tips    | Subscription Only         | Subscription Only       |
-| **Friction**    | **Zero.** On-platform, 1-click.     | Low. On-platform.         | **High.** Off-platform. |
-| **Payouts**     | **Instant & Global (USDC)**         | Slow, Bank/Stripe-based   | Slow, Bank/PayPal-based |
-| **User Choice** | **Yes.** Pay from AVAX or Celo.     | No. Fiat only.            | No. Fiat only.          |
-| **Ownership**   | **Creator-centric.** Open protocol. | **Platform-centric.**     | **Platform-centric.**   |
+For the hackathon MVP, we've focused on the core on-chain and backend logic. The
+creator setup is a manual, developer-driven process that demonstrates the
+system's foundation:
 
-## Technology Stack
+- **On-Chain Registration:** A creator interacts directly with our `PayerRouter`
+  smart contract on Avalanche Fuji (e.g., via Remix or Etherscan) to create an
+  immutable, on-chain link between their social handle (`@creatorX`) and their
+  wallet address.
+- **Content Paywalling:** The creator's premium content (e.g., an unlisted video
+  or a private document link) is registered in a simple `paywall.json` file in
+  our backend. This file maps a `contentId` to the secret content URL and its
+  price.
 
-- **Frontend Embedding:** [Sherry](https://sherry.social/)
-- **Core Logic:** Sherry
-  [Dynamic Action](https://docs.sherry.social/docs/api-reference/action-types/dynamic-actions)
-- **Payment Protocol :** [x402](https://x402.org)
-- **Blockchains:** [Avalanche](https://build.avax.network),
-  [Celo](https://docs.celo.org)
-- **Stablecoin:** [USDC](https://usdc.com)
-- **Cross-Chain Bridge:** [Wormhole](https://wormhole.com)
-- **Framework:** [Next.js](https://nextjs.org) / [Vercel](https://vercel.com)
+#### 2. The Consumer Payment & Access Flow
 
-## Running Locally
+This is the core user journey, powered by a single Sherry Dynamic Action that
+orchestrates a complex series of events:
 
-To get a local copy up and running, follow these simple steps.
+1. **Initiate Payment:** A follower clicks the "Unlock Content" button on a
+   post.
+2. **Backend Orchestration:** Sherry sends a `POST` request to our Next.js
+   backend. This backend is the brain of the operation and performs our
+   **complex custom logic**: a. **Dynamic Price Calculation:** It reads our
+   `paywall.json` to determine the correct price for the requested `contentId`.
+   b. **On-Chain Address Resolution:** It makes a read call to the `PayerRouter`
+   contract on Avalanche Fuji to resolve the creator's wallet address from their
+   handle. c. **Transaction Building:** It constructs a `USDC` payment
+   transaction targeting the creator's resolved address for the dynamically
+   determined price.
+3. **User-Signed Transaction:** The backend returns the `serializedTransaction`
+   to Sherry. The user's wallet prompts them for a single signature to approve
+   the payment.
+4. **Secure Access Control:** Upon successful on-chain payment confirmation, the
+   backend records the user's wallet address in an `access_records.json` file,
+   granting them a non-transferable "access token" for that specific piece of
+   content.
+5. **Signature-Gated Delivery:** The user is directed to a secure `/viewer` page
+   on our Next.js app. To access the content, the user must sign a gas-less
+   message to prove ownership of the wallet that paid. Our backend verifies this
+   signature against the `access_records.json` before securely delivering the
+   content. This prevents link-sharing and ensures only the payer can view the
+   content.
 
-### Prerequisites
+### Architectural Flow
 
-- [Node.js](https://nodejs.org) (v18 or later)
-- [pnpm](https://pnpm.io)
-- A wallet extension like [MetaMask](https://metamask.io) or
-  [Core](https://core.app)
+```mermaid
+graph TD
+    A[User]
+    B[MiniApp]
+    C[Backend]
+    D[Paywall]
+    E[PayerRouter]
+    F[Fuji]
+    G[Access]
+    H[Viewer]
 
-### Installation
+    A --> B
+    B --> C
+    C --> D
+    C --> E
+    C --> B
+    B --> F
+    F --> C
+    C --> G
+    C --> H
+    H --> C
+    C --> G
+    C --> H
+```
 
-1. Clone the repo
-   ```sh
-   git clone https://github.com/your_username_/payer-tiger.git
-   ```
-2. Install NPM packages
-   ```sh
-   cd payer-tiger
-   pnpm install
-   ```
-3. Create a `.env.local` file and add your environment variables (e.g., RPC
-   URLs).
-   ```env
-   AVALANCHE_RPC_URL=...
-   CELO_RPC_URL=...
-   ```
-4. Run the development server
-   ````sh
-   pnpm dev
-   ```
-   ````
-5. Open [http://localhost:3000](http://localhost:3000) with your browser to see
-   the result..
+### Technology Stack
+
+- **Frontend Embedding:** Sherry SDK
+- **Core Logic:** Sherry Dynamic Action
+- **Backend & Viewer:** Next.js (API Routes & Pages)
+- **Smart Contracts:** Solidity, Foundry (`PayerRouter`)
+- **Blockchain:** Avalanche Fuji
+- **Stablecoin:** USDC
+- **Libraries:** `viem`, `wagmi`
+
+### Hackathon MVP Scope vs. Future Vision
+
+- **Hackathon MVP Focus:** Our submission is a robust, end-to-end system
+  demonstrating a **complex, multi-step smart contract interaction and secure
+  delivery flow**. We prove the core value proposition by enabling a user to pay
+  a creator directly via a user-signed transaction, with payment routing handled
+  by our on-chain `PayerRouter` and content access secured by cryptographic
+  signatures.
+
+- **Future Vision (Post-Hackathon):** The infrastructure built for this MVP is
+  the foundation for our long-term vision. The next phases include:
+  - **Creator Portal:** Building a full-fledged Next.js dashboard for creators
+    to self-serve onboarding and content management.
+  - **Wallet-less Payments:** Integrating our `HTTPayer` service and the `x402`
+    protocol to offer a fully abstracted payment experience, allowing users
+    without Web3 wallets to pay seamlessly and dramatically expanding the
+    accessible market for creators.
