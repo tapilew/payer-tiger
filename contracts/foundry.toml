@@ -2,6 +2,7 @@
 src = "src"
 out = "out"
 libs = ["dependencies"]
+chain_id = 43113
 
 [dependencies]
 forge-std = "1.9.7"
