@@ -16,6 +16,7 @@ Patreon or X's own subscriptions.
 - [x] Create Foundry project
 - [ ] Setup Turborepo
 - [ ] Update README guide to run locally
+- [ ] Deploy HTTPayer servers to cloud (payer server, treasury server, avax facilitator server, demo server)
 
 ## The Problem: Creator Monetization is Broken
 
