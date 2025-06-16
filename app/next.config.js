@@ -9,23 +9,48 @@ const nextConfig = {
       tls: false,
     };
 
-    // Exclude Sherry SDK worker files from Terser minification
     if (!isServer) {
-      for (const minimizer of config.optimization.minimizer) {
-        if (minimizer.constructor.name === 'TerserPlugin') {
-          minimizer.options.exclude = /HeartbeatWorker/;
-          minimizer.options.terserOptions = {
-            ...minimizer.options.terserOptions,
-            parse: {
-              ...minimizer.options.terserOptions?.parse,
-              ecma: 2020,
-            },
-            compress: {
-              ...minimizer.options.terserOptions?.compress,
-              module: false,
-            },
-          };
-        }
+      // Add rule to handle HeartbeatWorker as raw asset to avoid Terser processing
+      config.module.rules.push({
+        test: /HeartbeatWorker\.js$/,
+        type: 'asset/resource',
+        generator: {
+          filename: 'static/js/[name].[contenthash][ext]',
+        },
+      });
+
+      // Handle Sherry SDK HeartbeatWorker minification issue
+      if (config.optimization.minimizer) {
+        config.optimization.minimizer = config.optimization.minimizer.map((minimizer) => {
+          if (minimizer.constructor.name === 'TerserPlugin') {
+            return new minimizer.constructor({
+              ...minimizer.options,
+              test: /\.js(\?.*)?$/i,
+              exclude: [
+                /HeartbeatWorker/i,
+                /\.worker\.js$/i,
+                /node_modules\/@sherrylinks\/sdk.*HeartbeatWorker.*\.js$/i,
+              ],
+              terserOptions: {
+                parse: {
+                  ecma: 2020,
+                },
+                compress: {
+                  ...minimizer.options.terserOptions?.compress,
+                  module: false,
+                  drop_console: false,
+                },
+                mangle: {
+                  safari10: true,
+                },
+                format: {
+                  comments: false,
+                },
+              },
+            });
+          }
+          return minimizer;
+        });
       }
     }
 
