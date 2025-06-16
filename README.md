@@ -62,32 +62,32 @@ system's foundation:
 #### 2. The Consumer Payment & Access Flow
 
 This is the core user journey, powered by a single Sherry Dynamic Action that
-orchestrates a complex series of events:
+orchestrates a complex series of events to meet the Minithon's requirements.
 
 1. **Initiate Payment:** A follower clicks the "Unlock Content" button on a
    post.
-2. **Backend Orchestration:** Sherry sends a `POST` request to our Next.js
-   backend. This backend is the brain of the operation and performs our
-   **complex custom logic**: a. **Dynamic Price Calculation:** It reads our
-   `paywall.json` to determine the correct price for the requested `contentId`.
-   b. **On-Chain Address Resolution:** It makes a read call to the `PayerRouter`
-   contract on Avalanche Fuji to resolve the creator's wallet address from their
-   handle. c. **Transaction Building:** It constructs a `USDC` payment
-   transaction targeting the creator's resolved address for the dynamically
-   determined price.
-3. **User-Signed Transaction:** The backend returns the `serializedTransaction`
-   to Sherry. The user's wallet prompts them for a single signature to approve
-   the payment.
+2. **Backend Orchestration (The "Complex Logic"):** Sherry sends a `POST`
+   request to our Next.js backend. This backend is the brain of the operation
+   and performs our **complex custom logic**: a. **Price & Address Resolution:**
+   It reads our `paywall.json` to determine the price and makes a read call to
+   the `PayerRouter` contract to resolve the creator's wallet address. b.
+   **Transaction Building:** It constructs a **single, powerful transaction**
+   that bundles two calls using a multicall pattern: i. An `approve` call to the
+   USDC contract, allowing our `PayerRouter` to spend the user's funds. ii. A
+   call to the `payAndLogAccess` function on our `PayerRouter` contract, which
+   transfers the funds and emits an on-chain event logging the access.
+3. **User-Signed Transaction:** The backend returns this single, bundled
+   `serializedTransaction` to Sherry. The user's wallet prompts them for **one
+   signature** to approve the entire operation.
 4. **Secure Access Control:** Upon successful on-chain payment confirmation, the
    backend records the user's wallet address in an `access_records.json` file,
    granting them a non-transferable "access token" for that specific piece of
    content.
-5. **Signature-Gated Delivery:** The user is directed to a secure `/viewer` page
-   on our Next.js app. To access the content, the user must sign a gas-less
-   message to prove ownership of the wallet that paid. Our backend verifies this
-   signature against the `access_records.json` before securely delivering the
-   content. This prevents link-sharing and ensures only the payer can view the
-   content.
+5. **Signature-Gated Delivery:** The user is automatically redirected to a
+   secure `/viewer` page on our Next.js app. To access the content, the user
+   must sign a **free, gas-less message** to prove ownership of the wallet that
+   paid. Our backend verifies this signature against the `access_records.json`
+   before securely delivering the content, preventing link-sharing.
 
 ### Architectural Flow
 
@@ -96,31 +96,31 @@ graph TD
     A[User]
     B[MiniApp]
     C[Backend]
-    D[Paywall]
-    E[PayerRouter]
+    D[PaywallRouter]
     F[Fuji]
     G[Access]
     H[Viewer]
+    I[Verify]
 
     A --> B
     B --> C
     C --> D
-    C --> E
+    C --> C
     C --> B
     B --> F
     F --> C
     C --> G
     C --> H
-    H --> C
-    C --> G
-    C --> H
+    H --> I
+    I --> G
+    I --> H
 ```
 
 ### Technology Stack
 
 - **Frontend Embedding:** Sherry SDK
 - **Core Logic:** Sherry Dynamic Action
-- **Backend & Viewer:** Next.js (API Routes & Pages)
+- **Backend & Viewer:** Next.js (Route Handlers & App Router)
 - **Smart Contracts:** Solidity, Foundry (`PayerRouter`)
 - **Blockchain:** Avalanche Fuji
 - **Stablecoin:** USDC
@@ -131,9 +131,9 @@ graph TD
 - **Hackathon MVP Focus:** Our submission is a robust, end-to-end system
   demonstrating a **complex, multi-step smart contract interaction and secure
   delivery flow**. We prove the core value proposition by enabling a user to pay
-  a creator directly via a user-signed transaction, with payment routing handled
-  by our on-chain `PayerRouter` and content access secured by cryptographic
-  signatures.
+  a creator directly via a single user-signed transaction, with payment routing
+  handled by our on-chain `PayerRouter` and content access secured by
+  cryptographic signatures.
 
 - **Future Vision (Post-Hackathon):** The infrastructure built for this MVP is
   the foundation for our long-term vision. The next phases include:
