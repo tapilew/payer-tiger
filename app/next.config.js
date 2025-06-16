@@ -2,9 +2,6 @@ const path = require('node:path');
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  experimental: {
-    appDir: true,
-  },
   webpack: (config, { isServer }) => {
     // Alias the problematic worker file from @sherrylinks/sdk to an empty module.
     // This prevents the file with the 'export {}' from being processed by
