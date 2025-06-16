@@ -14,6 +14,11 @@ const nextConfig = {
 			config.resolve.alias['@sherrylinks/sdk/dist/esm/chunks/HeartbeatWorker'] = emptyModule;
 			console.log('Aliased', workerPath, 'and .js-less version to', emptyModule);
 			console.log('Current alias map:', config.resolve.alias);
+			// Add null-loader rule for HeartbeatWorker.js
+			config.module.rules.push({
+				test: /HeartbeatWorker\.js$/,
+				use: 'null-loader',
+			});
 		}
 		return config;
 	},
