@@ -1,37 +1,32 @@
 {
-	"name": "app",
-	"version": "0.1.0",
-	"private": true,
-	"type": "module",
-	"scripts": {
-		"build": "next build",
-		"check": "biome check .",
-		"check:unsafe": "biome check --write --unsafe .",
-		"check:write": "biome check --write .",
-		"dev": "next dev --turbo",
-		"preview": "next build && next start",
-		"start": "next start",
-		"typecheck": "tsc --noEmit"
-	},
-	"dependencies": {
-		"@t3-oss/env-nextjs": "^0.12.0",
-		"next": "^15.2.3",
-		"react": "^19.0.0",
-		"react-dom": "^19.0.0",
-		"zod": "^3.24.2"
-	},
-	"devDependencies": {
-		"@biomejs/biome": "1.9.4",
-		"@tailwindcss/postcss": "^4.0.15",
-		"@types/node": "^20.14.10",
-		"@types/react": "^19.0.0",
-		"@types/react-dom": "^19.0.0",
-		"postcss": "^8.5.3",
-		"tailwindcss": "^4.0.15",
-		"typescript": "^5.8.2"
-	},
-	"ct3aMetadata": {
-		"initVersion": "7.39.3"
-	},
-	"packageManager": "pnpm@9.12.0"
+  "name": "app",
+  "private": true,
+  "version": "0.0.0",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@tanstack/react-query": "5.45.1",
+    "next": "14.2.4",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "viem": "latest",
+    "wagmi": "latest"
+  },
+  "devDependencies": {
+    "@types/node": "^20.12.10",
+    "@types/react": "^18.3.1",
+    "@types/react-dom": "^18.3.0",
+    "@wagmi/cli": "latest",
+    "bufferutil": "^4.0.8",
+    "encoding": "^0.1.13",
+    "lokijs": "^1.5.12",
+    "pino-pretty": "^10.3.1",
+    "supports-color": "^9.4.0",
+    "typescript": "^5.4.5",
+    "utf-8-validate": "^5.0.2"
+  }
 }

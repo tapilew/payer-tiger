@@ -15,6 +15,7 @@ single click.
   - [ ] treasury server
   - [ ] avax facilitator server
   - [ ] demo server
+- [ ] Add CI Github Actions
 
 ## The Problem: Creator Monetization is Broken
 
