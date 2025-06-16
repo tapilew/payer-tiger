@@ -1,5 +1,9 @@
 - To deploy to Avalanche Fuji:
 
+forge install OpenZeppelin/openzeppelin-contracts
+
+forge build
+
 forge create src/PayerRouter.sol:PayerRouter \
   --rpc-url https://avax-fuji.g.alchemy.com/v2/DyziQ7JPvW6WePKgItX2LDTAT_RU4zQ6 \
   --private-key $PRIVATE_KEY \
@@ -7,4 +11,4 @@ forge create src/PayerRouter.sol:PayerRouter \
   --legacy \
   --gas-limit 5000000
 
-PayerRouter contract address: 0x8168599C79B24EEEEf8c608b49954588764d08D2
+PayerRouter contract address: 0x994519B71387380F30Be925a75a5593cffacd401

@@ -40,6 +40,8 @@
 # Icon must end with two \r
 Icon
 
+# Forge Dependencies
+contracts/dependencies/
 
 # Thumbnails
 ._*
