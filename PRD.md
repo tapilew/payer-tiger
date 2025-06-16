@@ -47,6 +47,8 @@ Fintech, Web3, Creator Economy, Decentralized Protocol
 - **Web3 Concepts:** ERC20 (`approve`/`transferFrom`), multicall transaction
   patterns, EIP-4361 (Sign-In with Ethereum)
 - **Deployment:** Vercel
+- **Package Manager:** pnpm
+- **Wallet:** MetaMask, Core
 
 2. **Analytical thinking**
    - **how do i play this game?** By building the specified MVP exactly as
@@ -122,20 +124,26 @@ broader industry trend towards decentralized and user-owned systems.
 
 ### **Epic: MVP End-to-End Monetization Flow**
 
-#### **User Story 1: Creator Onboarding (Manual MVP Flow)**
+#### **User Story 1: Creator Onboarding & Content Sharing**
 
-**As a** Payer Tiger developer (acting on behalf of a creator), **I want to**
-register the creator's payment information on-chain and set up their paywalled
-content, **so that** the system is ready for a consumer to make a payment.
+**As a** content creator, **I want to** register my payment information on-chain
+and share my premium content with followers via social media, **so that** I can
+monetize my work directly and securely.
 
 **Acceptance Criteria:**
 
-1. **On-Chain Registration:** The developer can use a tool like Remix to call
+1. **On-Chain Registration:** The creator (or developer on their behalf) calls
    `addPayee(creatorHandle, creatorAddress)` on the deployed `PayerRouter`
-   contract.
-2. **Content Paywalling:** The developer can add a new entry to a local
-   `paywall.json` file. The entry must contain a `contentId`, `title`, the
-   secret `unlockableUrl`, and a `priceUSDC`.
+   contract using tools like Remix or Foundry.
+2. **Content Setup:** The creator's premium content is added to the system via
+   `paywall.json` with `contentId`, `title`, `unlockableUrl`, and `priceUSDC`.
+3. **Social Media Sharing:** The creator shares their Sherry Mini-App link on
+   social platforms with specific query parameters:
+   ```
+   https://payer-tiger-app.vercel.app/api/app?creatorHandle=@creator1&contentId=premium-article-123
+   ```
+4. **Dynamic Content Discovery:** The system automatically creates default
+   content entries for testing and development when `paywall.json` is empty.
 
 #### **User Story 2: Follower Payment & Access (Core MVP Flow)**
 
@@ -146,15 +154,16 @@ premium work without friction.
 **Acceptance Criteria:**
 
 1. **Payment Initiation:** The user clicks a Sherry Dynamic Action button
-   ("Unlock for X USDC").
-2. **Backend Orchestration:** The backend API
-   (`/api/payer-tiger/unlock-content`) receives the request and executes the
-   following logic: a. It looks up the `priceUSDC` from `paywall.json` using the
-   `contentId`. b. It calls `getPayee` on the `PayerRouter` contract to resolve
-   the creator's address. c. It constructs a **multicall transaction** that
-   bundles two atomic calls: i. An `approve` call to the `USDC` contract. ii. A
-   call to `payAndLogAccess` on the `PayerRouter` contract. d. It returns the
-   single `serializedTransaction` to Sherry.
+   ("Unlock Content for X USDC") from the creator's social media post.
+2. **Backend Orchestration:** The backend API (`/api/app`) receives the request
+   with `creatorHandle` and `contentId` parameters and executes the following
+   logic: a. Dynamically reads or creates `paywall.json` and
+   `access_records.json` files. b. Looks up the `priceUSDC` from `paywall.json`
+   using the `contentId`. c. Calls `getPayee` on the `PayerRouter` contract to
+   resolve the creator's address. d. Constructs a **single transaction** that
+   calls `payAndLogAccess` on the `PayerRouter` contract (Note: For MVP, this is
+   a single call, not a multicall). e. Returns the `serializedTransaction` to
+   Sherry as an `ExecutionResponse`.
 3. **User Signature:** The user is prompted by their wallet to sign **one
    transaction**.
 4. **Access Granting:** Upon successful transaction confirmation, the backend
@@ -170,14 +179,62 @@ premium work without friction.
 
 8. **Procedural thinking**
    - **how do i excel in this game?** By implementing the detailed UX/UI flow
-     below flawlessly, ensuring the multicall transaction works, and the
-     signature-gated access is secure.
+     below flawlessly, ensuring the transaction works, and the signature-gated
+     access is secure.
+
+## **Technical Implementation Details**
+
+### **Backend API Structure**
+
+- **GET `/api/app`:** Returns Sherry Dynamic Action metadata with proper
+  validation
+- **POST `/api/app`:** Handles payment transaction creation with query
+  parameters:
+  - `creatorHandle`: Creator's social handle (e.g., "creator1")
+  - `contentId`: Unique identifier for the content (e.g., "abc123")
+
+### **File Management**
+
+- **Dynamic File Creation:** The system automatically creates `paywall.json` and
+  `access_records.json` if they don't exist
+- **Auto-Population:** For development, empty `paywall.json` is populated with
+  default test content
+- **Error Handling:** Comprehensive error responses with detailed debugging
+  information
+
+### **Smart Contract Integration**
+
+- **Contract Address:** `0x994519B71387380F30Be925a75a5593cffacd401` (Fuji)
+- **USDC Address:** `0x5425890298aed601595a70AB815c96711a31Bc65` (Fuji)
+- **Functions Used:**
+  - `getPayee(string _handle)`: Resolves creator handle to wallet address
+  - `payAndLogAccess(bytes32 contentId, string creatorHandle, address token, uint256 amount)`:
+    Processes payment
+
+### **Development & Testing**
+
+- **Test Script:** `app/scripts/test-post.ts` for endpoint testing
+- **Error Debugging:** Enhanced error responses with detailed messages
+- **Local Development:** File-based state management for rapid iteration
 
 ## **UX/UI (User Interaction and Design)**
 
 The MVP will have one single user-facing page: `/viewer`. It should be clean,
 minimalist, and functional. Use Avalanche-branded UI components or a simple,
 clean design.
+
+### **The Creator Sharing Experience:**
+
+1. **Content Creation:** Creator produces premium content and gets a unique
+   `contentId`
+2. **Link Generation:** Creator uses the Sherry Mini-App URL with their specific
+   parameters:
+   ```
+   https://payer-tiger-app.vercel.app/api/app?creatorHandle=@myhandle&contentId=my-premium-post
+   ```
+3. **Social Sharing:** Creator posts this link on X, Arena, or other platforms
+4. **Follower Discovery:** Followers see the Sherry Dynamic Action button
+   directly in their feed
 
 ### **The `/viewer` Page Flow:**
 
@@ -204,18 +261,24 @@ clean design.
 ## **Questions**
 
 - **How is content paywalled for the MVP?**
-  - **Answer:** Via a manual entry in a backend `paywall.json` file.
+  - **Answer:** Via dynamic entries in a backend `paywall.json` file that
+    auto-populates for development.
 - **How is access secured to prevent link sharing?**
   - **Answer:** Via a signature-gated `/viewer` page that requires the user to
     prove ownership of the wallet that made the purchase (Sign-In with
     Ethereum).
+- **How do creators share content with followers?**
+  - **Answer:** Creators share Sherry Mini-App URLs with specific query
+    parameters (`creatorHandle` and `contentId`) on social media platforms.
 
 ## **Not Doing (MVP Scope)**
 
-- **No Creator UI/Dashboard:** All creator setup is manual.
+- **No Creator UI/Dashboard:** All creator setup is manual for MVP.
 - **No `HTTPayer` Integration:** The payment flow requires a user-signed
   transaction.
 - **No Cross-Chain Functionality:** The system is exclusively for Avalanche
   Fuji.
 - **No Other Tokens:** Payments are exclusively in `USDC`.
 - **No Database:** State is managed with local JSON files.
+- **No Multicall Implementation:** For MVP simplicity, using single contract
+  calls.

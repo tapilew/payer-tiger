@@ -13,6 +13,8 @@ import {
     type ExecutionResponse,
     type Metadata,
 } from "@sherrylinks/sdk";
+import fs from "fs/promises";
+import path from "path";
 
 const PAYER_ROUTER_ADDRESS = "0x994519B71387380F30Be925a75a5593cffacd401";
 const USDC_ADDRESS = "0x5425890298aed601595a70AB815c96711a31Bc65"; // Fuji USDC
@@ -24,15 +26,27 @@ const payerRouterAbi = parseAbi([
     "event ContentAccessed(bytes32 indexed contentId, address indexed payer, address indexed creator, uint256 amount)",
 ]);
 
-// Sample paywall data (in a real app, this would come from a database)
-const paywallData = [
-    {
-        contentId: "abc123",
-        title: "Premium Article: The Future of Web3",
-        unlockableUrl: "https://example.com/premium-content",
-        priceUSDC: "1000000", // 1 USDC (6 decimals)
-    },
-];
+const DATA_DIR = path.join(process.cwd(), "src/data");
+const PAYWALL_PATH = path.join(DATA_DIR, "paywall.json");
+const ACCESS_RECORDS_PATH = path.join(DATA_DIR, "access_records.json");
+
+async function ensureFileExists(filePath: string, defaultContent: string) {
+    try {
+        await fs.access(filePath);
+    } catch {
+        await fs.writeFile(filePath, defaultContent, "utf-8");
+    }
+}
+
+async function readJsonFile(filePath: string, defaultValue: any) {
+    await ensureFileExists(filePath, JSON.stringify(defaultValue, null, 2));
+    const content = await fs.readFile(filePath, "utf-8");
+    try {
+        return JSON.parse(content);
+    } catch {
+        return defaultValue;
+    }
+}
 
 // GET endpoint - Returns Sherry metadata
 export async function GET(req: NextRequest) {
@@ -42,8 +56,9 @@ export async function GET(req: NextRequest) {
         const serverUrl = `${protocol}://${host}`;
 
         const metadata: Metadata = {
-            url: "https://payer-tiger.com",
-            icon: "https://avatars.githubusercontent.com/u/117962315",
+            url: "https://payer-tiger-app.vercel.app",
+            icon:
+                "https://utfs.io/f/IN4OjmY4wMHBvmNvMjUNZrU4ew9VXkhMBbluWpziOGf6Rt7y",
             title: "Payer Tiger 💲🐅",
             baseUrl: serverUrl,
             description:
@@ -118,8 +133,24 @@ export async function POST(req: NextRequest) {
             );
         }
 
-        // 1. Lookup priceUSDC from paywall data
-        const paywallEntry = paywallData.find((item) =>
+        // 1. Lookup priceUSDC from paywall.json (dynamic)
+        let paywallData = await readJsonFile(PAYWALL_PATH, []);
+        if (paywallData.length === 0) {
+            // Auto-populate with a default entry for development/testing
+            const defaultEntry = {
+                contentId: "abc123",
+                title: "Premium Article: The Future of Web3",
+                unlockableUrl: "https://example.com/premium-content",
+                priceUSDC: "1000000",
+            };
+            paywallData.push(defaultEntry);
+            await fs.writeFile(
+                PAYWALL_PATH,
+                JSON.stringify(paywallData, null, 2),
+                "utf-8",
+            );
+        }
+        const paywallEntry = paywallData.find((item: any) =>
             item.contentId === contentId
         );
         if (!paywallEntry) {
@@ -140,7 +171,13 @@ export async function POST(req: NextRequest) {
 
         const { priceUSDC } = paywallEntry;
 
-        // 2. Get creator address from contract
+        // 2. Ensure access_records.json exists (for future use)
+        await ensureFileExists(
+            ACCESS_RECORDS_PATH,
+            JSON.stringify([], null, 2),
+        );
+
+        // 3. Get creator address from contract
         const client = createPublicClient({
             chain: avalancheFuji,
             transport: http(),
@@ -170,10 +207,10 @@ export async function POST(req: NextRequest) {
             );
         }
 
-        // 3. Convert contentId to bytes32
+        // 4. Convert contentId to bytes32
         const contentIdBytes32 = contentId.padEnd(66, "0") as `0x${string}`;
 
-        // 4. Encode the payAndLogAccess transaction
+        // 5. Encode the payAndLogAccess transaction
         const payAndLogAccessData = encodeFunctionData({
             abi: payerRouterAbi,
             functionName: "payAndLogAccess",
@@ -185,7 +222,7 @@ export async function POST(req: NextRequest) {
             ],
         });
 
-        // 5. Create the transaction object
+        // 6. Create the transaction object
         const transaction = {
             to: PAYER_ROUTER_ADDRESS as `0x${string}`,
             data: payAndLogAccessData,
@@ -193,10 +230,10 @@ export async function POST(req: NextRequest) {
             type: "legacy" as const,
         };
 
-        // 6. Serialize the transaction
+        // 7. Serialize the transaction
         const serializedTransaction = serializeTransaction(transaction);
 
-        // 7. Return ExecutionResponse using Sherry SDK types
+        // 8. Return ExecutionResponse using Sherry SDK types
         const response: ExecutionResponse = {
             serializedTransaction,
             chainId: avalancheFuji.name,
@@ -213,7 +250,10 @@ export async function POST(req: NextRequest) {
     } catch (error) {
         console.error("Error in POST request:", error);
         return NextResponse.json(
-            { error: "Internal Server Error" },
+            {
+                error: "Internal Server Error",
+                details: error instanceof Error ? error.message : String(error),
+            },
             {
                 status: 500,
                 headers: {

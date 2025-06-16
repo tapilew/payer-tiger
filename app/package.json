@@ -6,12 +6,14 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "test:post": "tsx scripts/test-post.ts"
   },
   "dependencies": {
     "@sherrylinks/sdk": "2.23.20-beta.1",
     "@tanstack/react-query": "5.45.1",
     "next": "15.3.3",
+    "node-fetch": "^3.3.2",
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "utf-8-validate": "^5.0.2",
@@ -20,6 +22,7 @@
   },
   "devDependencies": {
     "@types/node": "^20.12.10",
+    "@types/node-fetch": "^2.6.12",
     "@types/react": "19.1.8",
     "@types/react-dom": "19.1.6",
     "@wagmi/cli": "latest",
@@ -28,6 +31,7 @@
     "lokijs": "^1.5.12",
     "pino-pretty": "^10.3.1",
     "supports-color": "^9.4.0",
+    "tsx": "^4.20.3",
     "typescript": "^5.4.5"
   },
   "pnpm": {
