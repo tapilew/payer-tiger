@@ -1,3 +1,5 @@
+throw new Error("TEST: next.config.js is loaded!");
+
 const path = require("node:path");
 
 /** @type {import('next').NextConfig} */
