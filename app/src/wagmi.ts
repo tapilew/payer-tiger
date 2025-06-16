@@ -1,14 +1,17 @@
-import { http, cookieStorage, createConfig, createStorage } from 'wagmi'
-import { mainnet, sepolia } from 'wagmi/chains'
-import { coinbaseWallet, injected, walletConnect } from 'wagmi/connectors'
+import { cookieStorage, createConfig, createStorage, http } from "wagmi";
+import { mainnet, sepolia } from "wagmi/chains";
+import { coinbaseWallet, injected, walletConnect } from "wagmi/connectors";
 
 export function getConfig() {
+  const projectId = process.env.NEXT_PUBLIC_WC_PROJECT_ID;
+  if (!projectId) throw new Error("NEXT_PUBLIC_WC_PROJECT_ID is not set");
+
   return createConfig({
     chains: [mainnet, sepolia],
     connectors: [
       injected(),
       coinbaseWallet(),
-      walletConnect({ projectId: process.env.NEXT_PUBLIC_WC_PROJECT_ID }),
+      walletConnect({ projectId }),
     ],
     storage: createStorage({
       storage: cookieStorage,
@@ -18,11 +21,11 @@ export function getConfig() {
       [mainnet.id]: http(),
       [sepolia.id]: http(),
     },
-  })
+  });
 }
 
-declare module 'wagmi' {
+declare module "wagmi" {
   interface Register {
-    config: ReturnType<typeof getConfig>
+    config: ReturnType<typeof getConfig>;
   }
 }
