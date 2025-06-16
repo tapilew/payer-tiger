@@ -70,8 +70,6 @@ importers:
         specifier: ^5.0.2
         version: 5.0.10
 
-  contracts: {}
-
 packages:
 
   '@adraffy/ens-normalize@1.11.0':

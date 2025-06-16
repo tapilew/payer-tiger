@@ -8,6 +8,11 @@ import {
     serializeTransaction,
 } from "viem";
 import { avalancheFuji } from "viem/chains";
+import {
+    createMetadata,
+    type ExecutionResponse,
+    type Metadata,
+} from "@sherrylinks/sdk";
 
 const PAYER_ROUTER_ADDRESS = "0x994519B71387380F30Be925a75a5593cffacd401";
 const USDC_ADDRESS = "0x5425890298aed601595a70AB815c96711a31Bc65"; // Fuji USDC
@@ -36,7 +41,7 @@ export async function GET(req: NextRequest) {
         const protocol = req.headers.get("x-forwarded-proto") || "http";
         const serverUrl = `${protocol}://${host}`;
 
-        const metadata = {
+        const metadata: Metadata = {
             url: "https://payer-tiger.com",
             icon: "https://avatars.githubusercontent.com/u/117962315",
             title: "Payer Tiger 💲🐅",
@@ -71,7 +76,10 @@ export async function GET(req: NextRequest) {
             ],
         };
 
-        return NextResponse.json(metadata, {
+        // Use Sherry SDK to validate and create metadata
+        const validatedMetadata = createMetadata(metadata);
+
+        return NextResponse.json(validatedMetadata, {
             headers: {
                 "Access-Control-Allow-Origin": "*",
                 "Access-Control-Allow-Methods":
@@ -188,8 +196,8 @@ export async function POST(req: NextRequest) {
         // 6. Serialize the transaction
         const serializedTransaction = serializeTransaction(transaction);
 
-        // 7. Return ExecutionResponse
-        const response = {
+        // 7. Return ExecutionResponse using Sherry SDK types
+        const response: ExecutionResponse = {
             serializedTransaction,
             chainId: avalancheFuji.name,
         };
