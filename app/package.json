@@ -6,8 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
-    "postinstall": "patch-package"
+    "lint": "next lint"
   },
   "dependencies": {
     "@sherrylinks/sdk": "2.23.20-beta.1",
@@ -27,11 +26,8 @@
     "bufferutil": "^4.0.8",
     "encoding": "^0.1.13",
     "lokijs": "^1.5.12",
-    "patch-package": "^8.0.0",
     "pino-pretty": "^10.3.1",
-    "postinstall-postinstall": "^2.1.0",
     "supports-color": "^9.4.0",
-    "typescript": "^5.4.5",
-    "utf-8-validate": "^5.0.2"
+    "typescript": "^5.4.5"
   }
 }
