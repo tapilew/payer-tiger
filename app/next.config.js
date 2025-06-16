@@ -1,3 +1,5 @@
+const path = require('node:path');
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   webpack: (config, { isServer, webpack }) => {
@@ -10,14 +12,9 @@ const nextConfig = {
     };
 
     if (!isServer) {
-      // Add IgnorePlugin to prevent HeartbeatWorker from being processed by webpack.
-      // This is an aggressive approach, but it should stop Terser from seeing the file.
-      config.plugins.push(
-        new webpack.IgnorePlugin({
-          resourceRegExp: /HeartbeatWorker\.js$/,
-          contextRegExp: /@sherrylinks\/sdk/,
-        }),
-      );
+      // Alias the problematic worker file to an empty module.
+      // This prevents the file from being processed by webpack and Terser.
+      config.resolve.alias['@sherrylinks/sdk/dist/esm/chunks/HeartbeatWorker.js'] = path.resolve(__dirname, 'src/lib/empty.js');
     }
 
     return config;
