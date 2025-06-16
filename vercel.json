@@ -3,7 +3,16 @@
     "builds": [
         {
             "src": "app/next.config.js",
-            "use": "@vercel/next"
+            "use": "@vercel/next",
+            "config": {
+                "distDir": ".next"
+            }
+        }
+    ],
+    "routes": [
+        {
+            "src": "/(.*)",
+            "dest": "/app/$1"
         }
     ]
 }
