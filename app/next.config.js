@@ -10,13 +10,14 @@ const nextConfig = {
     };
 
     if (!isServer) {
-      // Completely disable Terser minification to avoid HeartbeatWorker issues
-      config.optimization.minimize = false;
-      
-      // Alternative: If we want to keep minification for other files, replace Terser
-      // config.optimization.minimizer = config.optimization.minimizer.filter(
-      //   minimizer => minimizer.constructor.name !== 'TerserPlugin'
-      // );
+      // Add IgnorePlugin to prevent HeartbeatWorker from being processed by webpack.
+      // This is an aggressive approach, but it should stop Terser from seeing the file.
+      config.plugins.push(
+        new webpack.IgnorePlugin({
+          resourceRegExp: /HeartbeatWorker\.js$/,
+          contextRegExp: /@sherrylinks\/sdk/,
+        }),
+      );
     }
 
     return config;
