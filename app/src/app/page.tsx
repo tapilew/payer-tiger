@@ -1,48 +1,17 @@
-'use client'
-
-import { useAccount, useConnect, useDisconnect } from 'wagmi'
-
-function App() {
-  const account = useAccount()
-  const { connectors, connect, status, error } = useConnect()
-  const { disconnect } = useDisconnect()
-
+export default function Home() {
   return (
-    <>
-      <div>
-        <h2>Account</h2>
-
-        <div>
-          status: {account.status}
-          <br />
-          addresses: {JSON.stringify(account.addresses)}
-          <br />
-          chainId: {account.chainId}
-        </div>
-
-        {account.status === 'connected' && (
-          <button type="button" onClick={() => disconnect()}>
-            Disconnect
-          </button>
-        )}
+    <div className="min-h-screen bg-white flex items-center justify-center">
+      <div className="text-center max-w-2xl mx-auto px-4">
+        <h1 className="text-6xl font-bold text-gray-900 mb-6">
+          Payer Tiger 💲🐅
+        </h1>
+        <p className="text-2xl text-gray-600 mb-8">
+          The only payment platform with real <em>bite</em> in the crypto jungle.
+        </p>
+        <p className="text-lg text-gray-500">
+          Where creators earn their stripes and followers get their claws on premium content.
+        </p>
       </div>
-
-      <div>
-        <h2>Connect</h2>
-        {connectors.map((connector) => (
-          <button
-            key={connector.uid}
-            onClick={() => connect({ connector })}
-            type="button"
-          >
-            {connector.name}
-          </button>
-        ))}
-        <div>{status}</div>
-        <div>{error?.message}</div>
-      </div>
-    </>
+    </div>
   )
-}
-
-export default App
+} 

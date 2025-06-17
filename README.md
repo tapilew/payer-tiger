@@ -17,6 +17,10 @@ single click.
 - [x] Add comprehensive error handling and debugging
 - [x] Create testing infrastructure with TypeScript scripts
 - [x] Auto-populate development data for seamless testing
+- [x] Build creator dashboard with wallet connection
+- [x] Add Core wallet native support via wagmi
+- [x] Implement content creation and management UI
+- [x] Create content API endpoint for dashboard integration
 - [ ] Build /viewer page with signature-gated access
 - [ ] Implement access verification API endpoint
 - [ ] Deploy to production
@@ -181,6 +185,31 @@ graph TD
 - **POST `/api/app`:** Handles payment transaction creation
   - Query Parameters: `creatorHandle`, `contentId`
   - Returns: `ExecutionResponse` with serialized transaction
+- **GET `/api/content`:** Fetches all creator content from paywall.json
+- **POST `/api/content`:** Creates new content entries in paywall.json
+
+### Creator Dashboard
+
+The creator dashboard (`/dashboard`) provides a user-friendly interface for
+content creators to:
+
+- **Connect Wallet:** Native support for MetaMask, Core wallet, and other
+  injected providers
+- **Network Management:** Automatic detection and switching to Avalanche Fuji
+- **Content Creation:** Simple form to create premium content with:
+  - Creator handle input
+  - Content title and description
+  - Private content URL
+  - USDC pricing
+- **Content Management:** View all created content with:
+  - Content details and pricing
+  - Auto-generated Sherry Mini-App share URLs
+  - One-click copy functionality for social media sharing
+- **Real-time Sync:** All content syncs with the backend `paywall.json` used by
+  the Sherry endpoint
+
+**Access the dashboard:** Navigate to `/dashboard` after connecting your wallet
+on the homepage.
 
 ### File Structure
 
