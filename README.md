@@ -66,7 +66,7 @@ graph TD
     J --> K[On-chain Payment + Access Event]
     K --> L[DB: Access Records]
     L --> M[Redirect to /viewer]
-    M --> N[Signature Verification (SIWE or Custodial Auth)]
+    M --> N[Signature Verification - SIWE or Custodial Auth]
     N --> O[Secure Content Delivery]
 ```
 
