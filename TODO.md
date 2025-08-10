@@ -1,0 +1,49 @@
+# TODO
+
+- [x] Create T3 App
+- [x] Create Foundry project
+- [x] Setup Turborepo
+- [x] Implement Sherry Dynamic Action metadata endpoint
+- [x] Build POST endpoint with smart contract integration
+- [x] Add dynamic file management (paywall.json, access_records.json) — **(now DB)**
+- [x] Implement creator handle resolution via PayerRouter contract
+- [x] Add comprehensive error handling and debugging
+- [x] Create testing infrastructure with TypeScript scripts
+- [x] Auto-populate development data for seamless testing
+- [x] Build creator dashboard with wallet connection
+- [x] Add Core wallet native support via wagmi
+- [x] Implement content creation and management UI
+- [x] Create content API endpoint for dashboard integration
+- [ ] Crossmint React SDK setup
+- [ ] Integrate Crossmint WaaS for custodial wallet creation
+  - [ ] Configure WaaS keys and environment variables
+  - [ ] Implement `POST /api/payments/custodial` (create/lookup wallet, return funding address + polling id)
+  - [ ] Implement `POST /api/webhooks/crossmint` (wallet lifecycle, funding events)
+- [ ] Integrate HTTPayer for custodial wallet payment settlement
+  - [ ] Enqueue settlement job to call `payAndLogAccess` on `PayerRouter`
+  - [ ] Store `txHash` and write to `access_records` on confirmation
+- [ ] Implement custodial wallet access verification flow (no SIWE)
+  - [ ] Crossmint session/auth verification on `/viewer`
+  - [ ] `POST /api/access/verify` to check `access_records` for custodial address
+- [ ] Implement TanStack Query in the Next.js app
+  - [ ] App-level QueryClient provider
+  - [ ] Queries for content metadata, polling custodial payment status, and access verification
+- [ ] Add Zod schemas for validation (server + client)
+  - [ ] API request/response schemas (`creatorHandle`, `contentId`, ids)
+  - [ ] Environment variable schema
+  - [ ] Type inference from Zod in handlers/components
+- [ ] Audit and apply React Server Components (RSC) patterns in the App Router
+  - [ ] Server Components for data fetching/rendering where possible
+  - [ ] Client components only for wallet/signature UI
+- [ ] Build `/viewer` page with signature-gated access
+  - [ ] Crypto-native: SIWE prompt and verification
+  - [ ] Custodial: Crossmint auth verification
+- [ ] Implement access verification API endpoint (shared for SIWE + custodial)
+- [ ] Replace file-based storage with PostgreSQL
+- [ ] Deploy to production
+- [ ] Deploy HTTPayer servers to cloud
+  - [ ] payer server
+  - [ ] treasury server
+  - [ ] avax facilitator server
+  - [ ] demo server
+- [ ] Add CI GitHub Actions

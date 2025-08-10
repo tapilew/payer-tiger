@@ -2,14 +2,6 @@
 
 **Payer Tiger (💲,🐅)**
 
-### **Preamble for AI Agent**
-
-**Objective:** This document contains the complete specification for the Payer
-Tiger Minithon MVP. Your task is to use this PRD as the single source of truth
-for development. The architecture and logic have been finalized to meet the
-hackathon's complexity requirements within the given time constraints. Focus on
-implementing the specified user stories and technical flows precisely.
-
 ## **Project Overview**
 
 Payer Tiger is a decentralized monetization protocol and application that allows
@@ -17,6 +9,12 @@ content creators to receive direct, low-friction payments from their audience.
 It leverages the Sherry SDK for a seamless user experience within social
 platforms and uses on-chain smart contracts for censorship-resistant payment
 routing and verification.
+
+Payer Tiger supports both crypto-native and wallet-less payment paths. For
+wallet-less users, we use Crossmint WaaS to provision custodial wallets and
+abstract gas, while HTTPayer executes on-chain settlement to the `PayerRouter`
+on behalf of custodial wallets. No fiat on-ramp or credit card processing is
+included in the current region.
 
 1. **Logical thinking**
    - **what is the game?** The game is to create a monetization system where the
@@ -41,28 +39,35 @@ Fintech, Web3, Creator Economy, Decentralized Protocol
 
 ### **Skills Required**
 
-- **Frontend:** Next.js (App Router), TypeScript, `viem`/`wagmi`
+- **Frontend:** Next.js (App Router & React Server Components), TypeScript,
+  `viem`/`wagmi`
+- **Frontend Data Layer:** TanStack Query (data fetching, caching, polling)
 - **Backend:** Next.js (Route Handlers), Node.js
+- **Database:** Prisma Postgres with Drizzle ORM
 - **Smart Contracts:** Solidity, Foundry
 - **Web3 Concepts:** ERC20 (`approve`/`transferFrom`), multicall transaction
   patterns, EIP-4361 (Sign-In with Ethereum)
 - **Deployment:** Vercel
 - **Package Manager:** pnpm
-- **Wallet:** MetaMask, Core
+- **Wallet:** MetaMask, Core, Crossmint WaaS
+
+### **Tech Stack Capabilities**
+
+- **Next.js App Router + RSC:** Server-first rendering, secure server-only data access, and streaming UI; client components used only for interactive wallet/auth flows.
+- **TanStack Query:** Declarative fetching, caching, and polling; powers custodial payment status checks and access verification with retry/backoff.
+- **Zod:** Runtime validation for API inputs/outputs and environment variables; inferred types unify server contracts and client usage.
+- **`viem`/`wagmi`:** Robust JSON-RPC and wallet connectivity for crypto-native signing flows.
+- **Prisma + Drizzle:** Typed schema/migrations and composable queries for `content` and `access_records`.
+- **Crossmint WaaS:** Custodial wallet provisioning and auth for wallet-less users; gas abstraction.
+- **Vercel:** Preview deployments and serverless scaling for API routes.
 
 2. **Analytical thinking**
    - **how do i play this game?** By building the specified MVP exactly as
      described, focusing on a flawless end-to-end demo.
-   - **main objective and goal of this game?** To submit a winning project for
-     the Sherry Minithon that demonstrates a complex, useful, and secure smart
-     contract interaction.
+    - **main objective and goal of this game?** To evolve Payer Tiger into a
+      production-grade protocol and application that delivers a complex, useful,
+      and secure smart contract interaction.
    - **skills and tools:** See "Skills Required" above.
-
-### **Participants**
-
-- **Luis Tapia:** Product Design & Project Lead
-- **Brandyn Hamilton:** Smart Contract Development
-- **Juan Kong:** Product Management
 
 ### **Status**
 
@@ -70,7 +75,7 @@ In Development
 
 ### **Target release**
 
-Sherry Minithon Submission Deadline (June 15, 2025)
+Post-hackathon pilot rollout (TBD)
 
 ## **Customer Information (Buyer Persona)**
 
@@ -86,8 +91,8 @@ Sherry Minithon Submission Deadline (June 15, 2025)
 
 ## **Goals (Business Objectives)**
 
-1. **Primary Goal:** Deliver a functional, end-to-end MVP that meets all Sherry
-   Minithon requirements for "complex smart contract interaction."
+1. **Primary Goal:** Deliver a functional, end-to-end MVP ready for pilot
+   rollouts and stakeholder demos.
 2. **Secondary Goal:** Prove the core value proposition of a secure, on-chain
    payment system combined with a signature-gated content delivery mechanism.
 3. **Tertiary Goal:** Establish a foundational codebase for a future,
@@ -95,9 +100,10 @@ Sherry Minithon Submission Deadline (June 15, 2025)
 
 ## **Background and Strategic Fit**
 
-This project is a self-contained proof-of-concept designed to win the Sherry
-Minithon. It explores a new primitive for the creator economy, aligning with the
-broader industry trend towards decentralized and user-owned systems.
+This project began as a self-contained proof-of-concept and is now focused on
+post-hackathon productization. It explores a new primitive for the creator
+economy, aligning with the broader industry trend towards decentralized and
+user-owned systems.
 
 ## **Assumptions**
 
@@ -107,9 +113,9 @@ broader industry trend towards decentralized and user-owned systems.
   `AVAX` (for gas) on Avalanche Fuji.
 - The creator setup (on-chain registration, content paywalling) will be handled
   manually by the development team for the MVP demo.
-- The application state (paywalled content, access records) will be managed via
-  local JSON files in the Next.js project for the MVP. A database is not
-  required.
+- The application state (paywalled content, access records) is stored in a
+  PostgreSQL database.
+- Crossmint WaaS and HTTPayer API keys are available for wallet-less flows.
 - The user experience is optimized for desktop browsers.
 
 ## **Key Features (User Stories)**
@@ -136,14 +142,16 @@ monetize my work directly and securely.
    `addPayee(creatorHandle, creatorAddress)` on the deployed `PayerRouter`
    contract using tools like Remix or Foundry.
 2. **Content Setup:** The creator's premium content is added to the system via
-   `paywall.json` with `contentId`, `title`, `unlockableUrl`, and `priceUSDC`.
+   the `content` table in PostgreSQL with `contentId`, `title`, `unlockableUrl`,
+   and `priceUSDC`.
 3. **Social Media Sharing:** The creator shares their Sherry Mini-App link on
    social platforms with specific query parameters:
    ```
    https://payer-tiger-app.vercel.app/api/app?creatorHandle=@creator1&contentId=premium-article-123
    ```
-4. **Dynamic Content Discovery:** The system automatically creates default
-   content entries for testing and development when `paywall.json` is empty.
+4. **Dynamic Content Discovery:** The system can automatically create default
+   content entries for testing and development when the `content` table is
+   empty.
 
 #### **User Story 2: Follower Payment & Access (Core MVP Flow)**
 
@@ -157,25 +165,40 @@ premium work without friction.
    ("Unlock Content for X USDC") from the creator's social media post.
 2. **Backend Orchestration:** The backend API (`/api/app`) receives the request
    with `creatorHandle` and `contentId` parameters and executes the following
-   logic: a. Dynamically reads or creates `paywall.json` and
-   `access_records.json` files. b. Looks up the `priceUSDC` from `paywall.json`
-   using the `contentId`. c. Calls `getPayee` on the `PayerRouter` contract to
-   resolve the creator's address. d. Constructs a **single transaction** that
-   calls `payAndLogAccess` on the `PayerRouter` contract (Note: For MVP, this is
-   a single call, not a multicall). e. Returns the `serializedTransaction` to
-   Sherry as an `ExecutionResponse`.
-3. **User Signature:** The user is prompted by their wallet to sign **one
-   transaction**.
-4. **Access Granting:** Upon successful transaction confirmation, the backend
-   writes the user's wallet address and the `contentId` to the
-   `access_records.json` file.
-5. **Redirection:** The user is automatically redirected to the secure viewer
-   page: `/viewer?contentId=...`.
-6. **Secure Verification:** The `/viewer` page prompts the user to sign a
-   gas-less message (SIWE).
-7. **Content Delivery:** Upon successful signature verification against the
-   `access_records.json`, the premium content is rendered inside an `<iframe>`
-   on the `/viewer` page.
+   logic based on payment path:
+   - a) **Crypto-native:**
+     - Reads `content` from PostgreSQL and looks up `priceUSDC` using
+       `contentId`.
+     - Calls `getPayee` on the `PayerRouter` contract to resolve the creator's
+       address.
+     - Constructs a single transaction calling `payAndLogAccess` on the
+       `PayerRouter` contract and returns the `serializedTransaction` to Sherry
+       as an `ExecutionResponse`.
+   - b) **Wallet-less:**
+     - Creates or retrieves a Crossmint WaaS custodial wallet for the user and
+       returns a funding address.
+     - Returns an identifier to allow the client to poll payment status.
+     - Initiates an HTTPayer settlement job which, once funds are detected,
+       calls `payAndLogAccess` on `PayerRouter` on behalf of the custodial
+       wallet.
+3. **User Signature:**
+   - a) Crypto-native: The user is prompted by their wallet to sign one
+     transaction.
+   - b) Wallet-less: No on-chain signature by the user; the user authenticates
+     with Crossmint for custodial wallet operations.
+4. **Access Granting:** Upon successful on-chain confirmation, the backend
+   writes the user's wallet address and the `contentId` to the `access_records`
+   table in PostgreSQL.
+5. **Redirection:** The user is redirected to the secure viewer page:
+   `/viewer?contentId=...`.
+6. **Secure Verification:**
+   - a) Crypto-native: The `/viewer` page prompts the user to sign a gas-less
+     message (SIWE).
+   - b) Wallet-less: The `/viewer` page verifies the user via Crossmint WaaS
+     custodial wallet authentication instead of SIWE.
+7. **Content Delivery:** Upon successful verification against
+   `access_records`, the premium content is rendered inside an `<iframe>` on the
+   `/viewer` page.
 
 8. **Procedural thinking**
    - **how do i excel in this game?** By implementing the detailed UX/UI flow
@@ -186,21 +209,23 @@ premium work without friction.
 
 ### **Backend API Structure**
 
-- **GET `/api/app`:** Returns Sherry Dynamic Action metadata with proper
-  validation
-- **POST `/api/app`:** Handles payment transaction creation with query
-  parameters:
+- **GET `/api/app`:** Returns Sherry Dynamic Action metadata with proper validation (validated via Zod)
+- **POST `/api/app`:** Handles payment transaction creation with query parameters (validated via Zod):
   - `creatorHandle`: Creator's social handle (e.g., "creator1")
   - `contentId`: Unique identifier for the content (e.g., "abc123")
+- **POST `/api/payments/custodial`:** Initiates custodial wallet payment via HTTPayer (creates/looks up Crossmint WaaS wallet, returns funding address, enqueues settlement). Response schema enforced by Zod.
+- **POST `/api/webhooks/crossmint`:** Handles Crossmint WaaS webhooks/events related to custodial wallet lifecycle and funding. Payload parsing and signature verification guarded by Zod schemas.
 
-### **File Management**
+### **Database Management**
 
-- **Dynamic File Creation:** The system automatically creates `paywall.json` and
-  `access_records.json` if they don't exist
-- **Auto-Population:** For development, empty `paywall.json` is populated with
-  default test content
+- **Schema:** PostgreSQL with two core tables:
+  - `content(contentId PRIMARY KEY, title TEXT, unlockableUrl TEXT, priceUSDC NUMERIC)`
+  - `access_records(id SERIAL PRIMARY KEY, userAddress TEXT, contentId TEXT REFERENCES content(contentId), txHash TEXT, createdAt TIMESTAMP DEFAULT now())`
+- **Auto-Population (Dev):** Optional seed of default test content when the
+  `content` table is empty.
 - **Error Handling:** Comprehensive error responses with detailed debugging
-  information
+  information.
+- **Frontend Data:** TanStack Query powers content metadata fetching, custodial payment polling, and access verification, with cache keys aligned to Zod-typed contracts.
 
 ### **Smart Contract Integration**
 
@@ -210,12 +235,55 @@ premium work without friction.
   - `getPayee(string _handle)`: Resolves creator handle to wallet address
   - `payAndLogAccess(bytes32 contentId, string creatorHandle, address token, uint256 amount)`:
     Processes payment
+  - Note: For wallet-less flows, HTTPayer can call `payAndLogAccess` on behalf
+    of Crossmint custodial wallets.
+
+### **Frontend Architecture (RSC, TanStack Query, Zod)**
+
+- **React Server Components:** Server components render non-interactive content metadata securely; client components handle wallet connection, SIWE prompts, and Crossmint auth UI.
+- **TanStack Query:** Query functions typed via Zod schemas; polling for custodial confirmations; query boundaries colocated with client components; server components may prefetch.
+- **Zod Validation:** API handlers validate inputs and produce typed responses; environment variables are validated at startup.
 
 ### **Development & Testing**
 
 - **Test Script:** `app/scripts/test-post.ts` for endpoint testing
 - **Error Debugging:** Enhanced error responses with detailed messages
-- **Local Development:** File-based state management for rapid iteration
+- **Local Development:** PostgreSQL-backed state management for rapid iteration
+
+### **Architecture Diagram**
+
+```mermaid
+flowchart LR
+  subgraph User[User]
+    A1[Sees Dynamic Action]
+  end
+
+  A1 -->|Clicks Unlock| B[Backend /api/app]
+
+  subgraph CryptoNative[Crypto-native Path]
+    C1[Lookup content in PostgreSQL]
+    C2[getPayee on PayerRouter]
+    C3[Return serializedTransaction]
+    W[Wagmi]
+    PR[PayerRouter]
+  end
+
+  subgraph WalletLess[Wallet-less Path]
+    D1[Create/Retrieve Crossmint WaaS wallet]
+    D2[Return funding address + polling id]
+    CM[Crossmint WaaS]
+    HP[HTTPayer]
+    PR2[PayerRouter]
+  end
+
+  B --> C1 --> C2 --> C3 --> W --> PR
+  B --> D1 --> D2 --> CM --> HP --> PR2
+
+  PR --> E[Access logged in PostgreSQL]
+  PR2 --> E
+
+  E --> F[Redirect to /viewer]
+```
 
 ## **UX/UI (User Interaction and Design)**
 
@@ -244,9 +312,11 @@ clean design.
      content."
    - A single button: **"Verify with Wallet"**.
 2. **Verification Step:** User clicks the button.
-   - The application connects to their wallet.
-   - The wallet prompts the user to sign a message (e.g., "Sign this message to
-     prove you own this wallet and access your content. Nonce: 123456").
+   - Crypto-native: The application connects to their wallet and prompts a SIWE
+     message (e.g., "Sign this message to prove you own this wallet and access
+     your content.").
+   - Wallet-less: The application authenticates the user via Crossmint custodial
+     wallet login (no SIWE).
 3. **Loading State:** While the backend verifies the signature, the button is
    disabled and shows a loading spinner.
 4. **Success State:** If the backend returns success:
@@ -258,11 +328,13 @@ clean design.
    - An error message is displayed: "Access Denied. This wallet address has not
      purchased this content."
 
+Additionally, TanStack Query performs resilient polling for custodial payment confirmation prior to redirecting the user to `/viewer` in the wallet-less flow. All request/response shapes are validated by Zod, and server-first rendering via RSC minimizes client-side complexity.
+
 ## **Questions**
 
 - **How is content paywalled for the MVP?**
-  - **Answer:** Via dynamic entries in a backend `paywall.json` file that
-    auto-populates for development.
+  - **Answer:** Via records stored in a PostgreSQL `content` table. Optionally
+    pre-seeded with development defaults.
 - **How is access secured to prevent link sharing?**
   - **Answer:** Via a signature-gated `/viewer` page that requires the user to
     prove ownership of the wallet that made the purchase (Sign-In with
@@ -270,15 +342,15 @@ clean design.
 - **How do creators share content with followers?**
   - **Answer:** Creators share Sherry Mini-App URLs with specific query
     parameters (`creatorHandle` and `contentId`) on social media platforms.
+- **How are wallet-less payments handled?**
+  - **Answer:** Via Crossmint WaaS custodial wallets, with HTTPayer executing the
+    on-chain payment to `PayerRouter` and logging access on completion.
 
 ## **Not Doing (MVP Scope)**
 
 - **No Creator UI/Dashboard:** All creator setup is manual for MVP.
-- **No `HTTPayer` Integration:** The payment flow requires a user-signed
-  transaction.
 - **No Cross-Chain Functionality:** The system is exclusively for Avalanche
   Fuji.
 - **No Other Tokens:** Payments are exclusively in `USDC`.
-- **No Database:** State is managed with local JSON files.
 - **No Multicall Implementation:** For MVP simplicity, using single contract
   calls.
