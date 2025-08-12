@@ -14,7 +14,73 @@
 - [x] Add Core wallet native support via wagmi
 - [x] Implement content creation and management UI
 - [x] Create content API endpoint for dashboard integration
-- [ ] Crossmint React SDK setup
+- [x] Crossmint React SDK setup
+- [ ] Implement Creator Wallet Activity screen (Crossmint-only, Base chain)
+  - [ ] Environment & Configuration
+    - [ ] Add `MORALIS_API_KEY` to `.env` and load it securely
+      - [ ] Retrieve API key from Moralis Web3 Data API docs
+      - [ ] Add `MORALIS_API_KEY=...` to `.env` and ensure it is available server-side only
+      - [ ] Extend env Zod schema to include `MORALIS_API_KEY`
+    - [ ] Update Crossmint WaaS config to create wallets on Base chain
+      - [ ] Set the WaaS `chain` parameter to `base` when creating wallets
+      - [ ] Verify wallet retrieval/creation flows target Base
+    - [ ] Add Base chain config to Wagmi for future BYOW support
+      - [ ] Configure Base Mainnet: chain id `8453`, RPC `https://mainnet.base.org`
+      - [ ] Ensure chain is registered without enabling by default
+  - [ ] Backend API Routes (Next.js App Router)
+    - [ ] `GET /api/wallet/:address/balance`
+      - [ ] Proxy to Moralis: `https://deep-index.moralis.io/api/v2.0/wallets/:address/tokens?chain=base`
+      - [ ] Filter for USDC `0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913`
+      - [ ] Validate response with Zod schema (typed balance shape)
+      - [ ] Handle and log errors; return safe error JSON
+    - [ ] `GET /api/wallet/:address/transactions`
+      - [ ] Proxy to Moralis: `https://deep-index.moralis.io/api/v2.0/wallets/:address/erc20/transfers?chain=base`
+      - [ ] Filter for USDC `0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913` and incoming transfers only
+      - [ ] Limit to last 5–10 items (server-side trim)
+      - [ ] Validate response with Zod schema (typed transfer list)
+      - [ ] Handle and log errors; return safe error JSON
+  - [ ] Client Hooks
+    - [ ] `useWalletAddress()`
+      - [ ] Retrieve custodial wallet address from Crossmint SDK
+      - [ ] Expose `{ address, isLoading, error }`
+    - [ ] `useUSDCBalance(address)`
+      - [ ] TanStack Query fetch for `/api/wallet/:address/balance`
+      - [ ] Sensible cache key, refetch on window focus and interval disabled
+      - [ ] Expose `{ data, isLoading, isError }`
+    - [ ] `useUSDCPayments(address)`
+      - [ ] TanStack Query fetch for `/api/wallet/:address/transactions`
+      - [ ] Enable polling every 15s (`refetchInterval: 15000`)
+      - [ ] Expose `{ data, isLoading, isError }`
+  - [ ] UI Components
+    - [ ] `WalletAddressCard`
+      - [ ] Display address with copy button
+      - [ ] Link to view address on BaseScan
+    - [ ] `BalanceCard`
+      - [ ] Display current USDC balance with token icon
+      - [ ] Loading skeleton and error state
+    - [ ] `FundWalletButton`
+      - [ ] External link placeholder to fund custodial wallet
+    - [ ] `TransactionsTable`
+      - [ ] Show recent incoming USDC transactions
+      - [ ] Columns: amount, date/time, tx hash (link to BaseScan)
+      - [ ] Empty state when no transactions
+      - [ ] Loading skeleton and error state
+    - [ ] `EmptyState`
+      - [ ] Friendly message for no transactions
+  - [ ] Page Implementation
+    - [ ] Create client page `app/src/app/dashboard/wallet-activity/page.tsx`
+    - [ ] Use `useWalletAddress()` to get address
+    - [ ] Fetch balance via `useUSDCBalance(address)`
+    - [ ] Fetch transactions via `useUSDCPayments(address)`
+    - [ ] Render `WalletAddressCard`, `BalanceCard`, `FundWalletButton`, `TransactionsTable`
+    - [ ] Handle loading, error, and empty states per wireframe
+  - [ ] Development Tools & Debugging
+    - [ ] Add TanStack Query Devtools in development
+    - [ ] Console-log API errors for troubleshooting
+  - [ ] Testing
+    - [ ] Test with a known Crossmint custodial wallet on Base with USDC tx history
+    - [ ] Confirm 15s polling updates without page reload
+    - [ ] Validate empty state and error handling scenarios
 - [ ] Integrate Crossmint WaaS for custodial wallet creation
   - [ ] Configure WaaS keys and environment variables
   - [ ] Implement `POST /api/payments/custodial` (create/lookup wallet, return funding address + polling id)
